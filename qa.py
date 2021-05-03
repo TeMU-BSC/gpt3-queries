@@ -2,10 +2,11 @@ import os
 import openai
 import json
 from dataclasses import dataclass
-from typing import List, Any
+from typing import List
 import time
 import git
 import uuid
+from tqdm import tqdm
 
 ENGINE = "davinci"
 TEMPERATURE = 0.7
@@ -13,11 +14,11 @@ MAX_TOKENS = 64
 TOP_P = 1
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
-DATASET = 'path'
+DATASET = 'CatQA_/xquad_ca_v3.json'#'test.json'
 
 
 @dataclass
-class GPTConfig(str):
+class GPTConfig:
     engine: str
     temperature: float
     max_tokens: int
@@ -39,25 +40,20 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 @dataclass
-class Question(str):
+class Question:
+    qid: str
     context: str
     question: str
     true_answer: str
 
 
-@dataclass
-class Evaluation(str):
-    question: Question
-    gpt_answer: str
-    score: Any
-
-
-def get_dataset_instances(path) -> List[Question]:
+def get_dataset_instances(path: str) -> List[Question]:
     instances = []
     with open(path, 'r') as f:
-        for instance in json.load(f):
-            for q in instance['qas']:
-                instances.append(Question(instance['context'], q['question'], q['answers'][0]['text']))
+        for instance in json.load(f)['data']:
+            for p in instance['paragraphs']:
+                for q in p['qas']:
+                    instances.append(Question(q['id'], p['context'], q['question'], q['answers'][0]['text']))
     return instances
 
 
@@ -76,28 +72,35 @@ def get_gpt_answer(q: Question) -> str:
         frequency_penalty=FREQUENCY_PENALTY,
         presence_penalty=PRESENCE_PENALTY
     )
-    return response.last_response.data['choices'][0]['text']
-
-
-def evaluate(question: Question, gpt_answer: str) -> Evaluation:
-    raise NotImplementedError
-    score = None
-    return Evaluation(question=question, gpt_answer=gpt_answer, score=score)
+    answer = response.last_response.data['choices'][0]['text']
+    if '\n' in answer:
+        lines = answer.splitlines()
+        for line in lines:
+            if len(line.split()) > 0:
+                answer = line
+                break
+        answer = answer.splitlines()[0]
+    answer = answer.strip()
+    if answer[-1] == '.':
+        answer = answer[:-1]
+    return answer
 
 
 if __name__ == '__main__':
     data = get_dataset_instances(DATASET)
-    answers = []
-    for question in data:
+    answers = {}
+    for question in tqdm(data):
         gpt_answer = get_gpt_answer(question)
-        evaluation = evaluate(question, gpt_answer)
-        answers.append(evaluation)
+        answers[question.qid] = gpt_answer
 
     timestamp = time.strftime("%Y-%m-%d-%H%M")
     output_path = 'output'
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
     extra_id = uuid.uuid4().hex
-    output_file = os.path.join(output_path, f'{DATASET}-{timestamp}-{sha[:4]}-{extra_id[:4]}.json')
-    with open(output_file, 'w') as f:
-        json.dump({'answers': answers, 'config': config}, f)
+    output_directory = os.path.join(output_path, f'{DATASET}-{timestamp}-{sha[:4]}-{extra_id[:4]}')
+    os.makedirs(output_directory)
+    with open(os.path.join(output_directory, 'gpt_answers.json'), 'w') as f:
+        json.dump(answers, f)
+    with open(os.path.join(output_directory, 'args.json'), 'w') as f:
+        json.dump(vars(config), f)
