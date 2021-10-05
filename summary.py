@@ -18,7 +18,7 @@ TOP_P = 1
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
 DATASET = 'with_ca_mlsum_sample.json'
-
+MAX_TOKENS_UPPER = 2048
 MAX_TOKENS_DICT = {'ca': 6395,
                      'es': 9421,
                      'ru': 145249,
@@ -83,7 +83,7 @@ def get_gpt_summary(summary: Summary) -> Summary:
         engine=ENGINE,
         prompt=prompt,
         temperature=TEMPERATURE,
-        max_tokens=MAX_TOKENS_DICT[summary.lang],
+        max_tokens=max(MAX_TOKENS_DICT[summary.lang], MAX_TOKENS_UPPER),
         top_p=TOP_P,
         frequency_penalty=FREQUENCY_PENALTY,
         presence_penalty=PRESENCE_PENALTY,
@@ -116,6 +116,7 @@ if __name__ == '__main__':
     data = get_dataset_instances(DATASET)
 
     for lang in tqdm(data):
+        if lang == 'ru': continue
         for summary_dict in tqdm(data[lang]):
             summary = Summary(text=summary_dict['text'], summary_model=None, summary_gt=summary_dict['summary'], lang=lang)
             with open(os.path.join(output_directory, 'gpt_summaries.json'), 'a') as f:
