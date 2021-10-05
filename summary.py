@@ -94,7 +94,7 @@ def get_gpt_summary(summary: Summary) -> Summary:
         lines = ans.splitlines()
         for line in lines:
             if len(line.split()) > 0:
-                answer = line
+                ans = line
                 break
     ans = ans.ans()
     summary.summary_model = ans
