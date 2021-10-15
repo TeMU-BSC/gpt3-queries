@@ -9,7 +9,8 @@ import uuid
 from tqdm import tqdm
 from typing import Dict
 from dataclasses import asdict
-
+from transformers import GPT2TokenizerFast
+tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
 # ENGINE = "davinci"
 ENGINE = "ada"
 TEMPERATURE = 0.7
@@ -19,23 +20,25 @@ FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
 DATASET = 'with_ca_mlsum_sample.json'
 MAX_TOKENS_UPPER = 2048
-MAX_TOKENS_DICT = {'ca': 6395,
-                     'es': 9421,
-                     'ru': 145249,
-                     'de': 8739,
-                     'tu': 926}
+#MAX_TOKENS_DICT = {'ca': 6395,
+#                     'es': 9421,
+#                     'ru': 145249,
+#                     'de': 8739,
+#                     'tu': 926}
 
 STOP_SEQUENCES_DICT = {'ca': '.\nText:',
      'es': f'.\nTexto:',
      'ru': f'.\nТекст:',
      'de': f'.\nText:',
-     'tu': f'.\nMetin:'}
+     'tu': f'.\nMetin:',
+                       'en': f'.\nText:'
+                       }
 
 @dataclass
 class GPTConfig:
     engine: str
     temperature: float
-    max_tokens: Dict
+    max_tokens: int
     top_p: int
     frequency_penalty: float
     presence_penalty: float
@@ -44,7 +47,7 @@ class GPTConfig:
 
 config = GPTConfig(engine=ENGINE,
                    temperature=TEMPERATURE,
-                   max_tokens=MAX_TOKENS_DICT,
+                   max_tokens=2048,
                    top_p=TOP_P,
                    frequency_penalty=FREQUENCY_PENALTY,
                    presence_penalty=PRESENCE_PENALTY,
@@ -52,11 +55,11 @@ config = GPTConfig(engine=ENGINE,
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-
+from typing import Optional
 @dataclass
 class Summary:
     text: str
-    summary_model: str
+    summary_model: Optional[str]
     summary_gt: str
     lang: str
 
@@ -64,10 +67,11 @@ class Summary:
 def get_prompt(summary: Summary) -> str:
     text = summary.text
     prompt_dict = {'ca': f'Això és un sistema de resum de textos en català.\nText: {text}\nResum:',
-     'es': f'Esto es un sistema de resumen de textos en castellano.\nTexto:{text}\n Resumen:',
+     'es': f'Esto es un sistema de resumen de textos en castellano.\nTexto: {text}\nResumen:',
      'ru': f'Это система суммаризации текстов на русском языке.\nТекст: {text}\nРезюме:',
      'de': f'Das ist ein system zur Textextrahierung auf Deutsch\nText: {text}\nZusammenfassung:',
-     'tu': f'Bu Türkçe dilinde bir metin özetleme sistemidir.\nMetin: {text}\nÖzet:'}
+     'tu': f'Bu Türkçe dilinde bir metin özetleme sistemidir.\nMetin: {text}\nÖzet:',
+                   'en': f'This is a text summarization system in English.\nText: {text}\nSummary:'}
     return prompt_dict[summary.lang]
 
 
@@ -83,7 +87,7 @@ def get_gpt_summary(summary: Summary) -> Summary:
         engine=ENGINE,
         prompt=prompt,
         temperature=TEMPERATURE,
-        max_tokens=max(MAX_TOKENS_DICT[summary.lang], MAX_TOKENS_UPPER),
+        max_tokens=MAX_TOKENS_UPPER-len(tokenizer(prompt)['input_ids']),
         top_p=TOP_P,
         frequency_penalty=FREQUENCY_PENALTY,
         presence_penalty=PRESENCE_PENALTY,
@@ -96,7 +100,7 @@ def get_gpt_summary(summary: Summary) -> Summary:
             if len(line.split()) > 0:
                 ans = line
                 break
-    ans = ans.ans()
+    ans = ans.strip()
     summary.summary_model = ans
     return summary
 
@@ -115,10 +119,15 @@ if __name__ == '__main__':
         json.dump(vars(config), f)
     data = get_dataset_instances(DATASET)
 
+    max_per_lang = 5
     for lang in tqdm(data):
         if lang == 'ru': continue
+        i = 0
         for summary_dict in tqdm(data[lang]):
             summary = Summary(text=summary_dict['text'], summary_model=None, summary_gt=summary_dict['summary'], lang=lang)
             with open(os.path.join(output_directory, 'gpt_summaries.json'), 'a') as f:
                 gpt_summary = asdict(get_gpt_summary(summary))
                 f.write(json.dumps(gpt_summary) + '\n')
+            i += 1
+            if i == max_per_lang:
+                break

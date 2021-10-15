@@ -4,6 +4,7 @@ from tqdm import tqdm
 import numpy as np
 import json
 from pprint import pprint
+from transliterate import translit
 
 PATH_MLSUM_SAMPLE = 'with_ca_mlsum_sample.json'
 
@@ -15,10 +16,14 @@ with open(PATH_MLSUM_SAMPLE, 'r') as f:
 print('MLSUM SAMPLE')
 count = {}
 for lang in mlsum_langs:
+    if lang != 'ru': continue
     dataset = mlsum_langs[lang]
     count[lang] = []
     for e in tqdm(dataset):
-        count[lang].append(len(tokenizer(e['text'] + e['summary'])['input_ids']))
+        if lang == 'ru':
+            count[lang].append(len(tokenizer(translit(e['text'] + e['summary'], 'ru'))['input_ids']))
+        else:
+            count[lang].append(len(tokenizer(e['text'] + e['summary'])['input_ids']))
 
 print('Total', sum(map(sum, count.values())))
 
