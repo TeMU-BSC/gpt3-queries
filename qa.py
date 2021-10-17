@@ -1,22 +1,22 @@
 import os
 import openai
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import List
 import time
 import git
 import uuid
 from tqdm import tqdm
+from datasets import load_dataset
 
-ENGINE = "davinci"
-# ENGINE = "ada"
+#ENGINE = "davinci"
+ENGINE = "ada"
 TEMPERATURE = 0.7
 MAX_TOKENS = 64
 TOP_P = 1
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
-DATASET = 'CatQA_/xquad_ca_v3.json'
-
+LANGS = ['xquad.de', 'xquad.es', 'xquad.ru', 'xquad.tr', 'xquad.ca']
 
 @dataclass
 class GPTConfig:
@@ -26,7 +26,6 @@ class GPTConfig:
     top_p: int
     frequency_penalty: float
     presence_penalty: float
-    dataset: str
 
 
 config = GPTConfig(engine=ENGINE,
@@ -34,18 +33,21 @@ config = GPTConfig(engine=ENGINE,
                    max_tokens=MAX_TOKENS,
                    top_p=TOP_P,
                    frequency_penalty=FREQUENCY_PENALTY,
-                   presence_penalty=PRESENCE_PENALTY,
-                   dataset=DATASET)
+                   presence_penalty=PRESENCE_PENALTY)
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 @dataclass
 class Question:
-    qid: str
+    id: str
     context: str
     question: str
     true_answer: str
+
+    @staticmethod
+    def from_hf(answers, context, id, question):
+        return Question(id=id, context=context, question=question, true_answer=answers['text'][0])
 
 
 def get_dataset_instances(path: str) -> List[Question]:
@@ -92,15 +94,20 @@ if __name__ == '__main__':
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
     extra_id = uuid.uuid4().hex
-    dataset_name = os.path.basename(DATASET)
-    output_directory = os.path.join(output_path, f'{dataset_name}-{timestamp}-{sha[:4]}-{extra_id[:4]}')
+    output_directory = os.path.join(output_path, f'{timestamp}-{sha[:4]}-{extra_id[:4]}')
     os.makedirs(output_directory)
 
     with open(os.path.join(output_directory, 'args.json'), 'w') as f:
         json.dump(vars(config), f)
-    data = get_dataset_instances(DATASET)
 
-    for question in tqdm(data):
-        with open(os.path.join(output_directory, 'gpt_answers.json'), 'a') as f:
-            gpt_answer = get_gpt_answer(question)
-            f.write(json.dumps({question.qid: gpt_answer}) + '\n')
+    for lang in LANGS:
+        if lang == 'xquad.ca':
+            data = load_dataset("BSC-TeMU/xquad-ca", 'test')
+        else:
+            data = load_dataset('xquad', lang, split='validation')
+
+        for question in tqdm(data):
+            question = Question.from_hf(**question)
+            with open(os.path.join(output_directory, 'gpt_answers.json'), 'a') as f:
+                gpt_answer = get_gpt_answer(question)
+                f.write(json.dumps({question.id: gpt_answer, 'lang': lang, 'question': asdict(question)}) + '\n')
