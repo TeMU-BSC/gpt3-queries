@@ -16,7 +16,7 @@ MAX_TOKENS = 64
 TOP_P = 1
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
-LANGS = ['xquad.de', 'xquad.es', 'xquad.ru', 'xquad.tr', 'xquad.ca']
+LANGS = ['xquad.en', 'xquad.de', 'xquad.es', 'xquad.ru', 'xquad.tr', 'xquad.ca']
 
 @dataclass
 class GPTConfig:
