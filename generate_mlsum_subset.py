@@ -1,6 +1,6 @@
 from datasets import load_dataset
 import datasets
-from transformers import GPT2TokenizerFast, RobertaTokenizerFast, AutoTokenizer, BertTokenizerFast, EncoderDecoderModel, AutoModelForSeq2SeqLM
+from transformers import GPT2Tokenizer, RobertaTokenizer, AutoTokenizer, BertTokenizerFast, EncoderDecoderModel, AutoModelForSeq2SeqLM
 import json
 from tqdm import tqdm
 import numpy as np
@@ -32,7 +32,7 @@ def get_prediction(text,ckpt,lang):
         if lang == 'tu':
             tokenizer = BertTokenizerFast.from_pretrained(ckpt)
         else:
-            tokenizer = RobertaTokenizerFast.from_pretrained(ckpt)
+            tokenizer = RobertaTokenizer.from_pretrained(ckpt)
         model = EncoderDecoderModel.from_pretrained(ckpt).to(device)
         inputs = tokenizer([text],  padding="max_length", truncation=True, max_length=512, return_tensors="pt")
     input_ids = inputs.input_ids.to(device)
@@ -46,7 +46,7 @@ def get_rouge(gt,prediction):
     return(results["rouge1"].mid.fmeasure)
 
 sampled = {}
-tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 dataset = load_dataset('cnn_dailymail', '3.0.0', split='test')
 en_dataset = []
 for e in dataset:
