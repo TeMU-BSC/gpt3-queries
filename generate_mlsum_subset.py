@@ -1,6 +1,6 @@
 from datasets import load_dataset
 import datasets
-from transformers import GPT2TokenizerFast, RobertaTokenizerFast, AutoTokenizer, EncoderDecoderModel, AutoModelForSeq2SeqLM
+from transformers import GPT2TokenizerFast, RobertaTokenizerFast, AutoTokenizer, BertTokenizerFast, EncoderDecoderModel, AutoModelForSeq2SeqLM
 import json
 from tqdm import tqdm
 import numpy as np
@@ -29,7 +29,10 @@ def get_prediction(text,ckpt,lang):
         model = AutoModelForSeq2SeqLM.from_pretrained(ckpt).to(device)
         inputs = tokenizer([text], return_tensors="pt")
     else:
-        tokenizer = RobertaTokenizerFast.from_pretrained(ckpt)
+        if lang == 'tu':
+            tokenizer = BertTokenizerFast.from_pretrained(ckpt)
+        else:
+            tokenizer = RobertaTokenizerFast.from_pretrained(ckpt)
         model = EncoderDecoderModel.from_pretrained(ckpt).to(device)
         inputs = tokenizer([text],  padding="max_length", truncation=True, max_length=512, return_tensors="pt")
     input_ids = inputs.input_ids.to(device)
