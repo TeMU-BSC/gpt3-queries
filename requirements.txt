@@ -8,3 +8,8 @@ requests==2.25.1
 smmap==4.0.0
 tqdm==4.60.0
 urllib3==1.26.4
+absl-py==0.14.1
+nltk==3.6.5
+rouge-score==0.0.4
+torch==1.9.1
+sentencepiece==0.1.96
