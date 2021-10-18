@@ -4,7 +4,7 @@ from transformers import GPT2TokenizerFast, RobertaTokenizerFast, AutoTokenizer,
 import json
 from tqdm import tqdm
 import numpy as np
-mlsum_langs = ["es", "tu"]  # "ru", "tu"]
+mlsum_langs = ["de", "es", "tu"]  # "ru", "tu"]
 
 SAMPLE_SIZE = 500
 SEED = 42
