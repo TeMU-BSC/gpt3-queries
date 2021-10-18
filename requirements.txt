@@ -38,3 +38,6 @@ typing-extensions==3.10.0.2
 urllib3==1.26.4
 xxhash==2.0.2
 yarl==1.6.3
+absl-py==0.14.1
+nltk==3.6.5
+rouge-score==0.0.4
