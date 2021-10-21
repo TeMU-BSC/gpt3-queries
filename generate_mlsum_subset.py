@@ -7,7 +7,7 @@ import numpy as np
 import torch
 import sys
 #mlsum_langs = ["de", "es", "tu"]  # "ru", "tu"]
-mlsum_langs = sys.argv[1]
+mlsum_langs = [sys.argv[1]]
 print(mlsum_langs)
 
 SAMPLE_SIZE = 500
