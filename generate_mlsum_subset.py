@@ -5,7 +5,10 @@ import json
 from tqdm import tqdm
 import numpy as np
 import torch
-mlsum_langs = ["de", "es", "tu"]  # "ru", "tu"]
+import sys
+#mlsum_langs = ["de", "es", "tu"]  # "ru", "tu"]
+mlsum_langs = sys.argv[1]
+print(mlsum_langs)
 
 SAMPLE_SIZE = 500
 SEED = 42
@@ -22,7 +25,7 @@ MODELS_DICT = {
 }
 device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 models = {}
-for lang in MODELS_DICT:
+for lang in mlsum_langs:
     ckpt = MODELS_DICT[lang]
     if lang in ['en','de']:
         tokenizer = AutoTokenizer.from_pretrained(ckpt)
@@ -59,18 +62,20 @@ tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 dataset = load_dataset('cnn_dailymail', '3.0.0', split='test')
 dataset = dataset.shuffle(seed=SEED)
 en_dataset = []
-for e in tqdm(dataset):
-    if len(tokenizer(e['article'] + e['highlights'])['input_ids']) <= MAX_TOKENS:
-        prediction = get_prediction(e['article'], MODELS_DICT['en'],'en')
-        rouge_score = get_rouge(e['highlights'],prediction)
-        if rouge_score >= 0.1:
-            en_dataset.append({'text': e['article'], 'summary': e['highlights']})
-            print(len(en_dataset), 'of', SAMPLE_SIZE)
-        if len(en_dataset) == SAMPLE_SIZE:
-            break
-#sampled['en'] = list(np.random.choice(en_dataset, size=SAMPLE_SIZE, replace=False))
-sampled['en'] = en_dataset
+if 'en' in mlsum_langs:
+    for e in tqdm(dataset):
+        if len(tokenizer(e['article'] + e['highlights'])['input_ids']) <= MAX_TOKENS:
+            prediction = get_prediction(e['article'], MODELS_DICT['en'],'en')
+            rouge_score = get_rouge(e['highlights'],prediction)
+            if rouge_score >= 0.1:
+                en_dataset.append({'text': e['article'], 'summary': e['highlights']})
+                print(len(en_dataset), 'of', SAMPLE_SIZE)
+            if len(en_dataset) == SAMPLE_SIZE:
+                break
+    #sampled['en'] = list(np.random.choice(en_dataset, size=SAMPLE_SIZE, replace=False))
+    sampled['en'] = en_dataset
 for lang in mlsum_langs:
+    if lang == 'en': continue
     dataset = load_dataset("mlsum", lang, split='test')
     dataset = dataset.shuffle(seed=SEED)
     lang_dataset = []
@@ -85,6 +90,6 @@ for lang in mlsum_langs:
                 break
     sampled[lang] = lang_dataset#list(np.random.choice(lang_dataset, size=SAMPLE_SIZE, replace=False))
 
-with open('mlsum_sample.json', 'w') as f:
+with open(f'{str(mlsum_langs)}_mlsum_sample.json', 'w') as f:
     json.dump(sampled, f)
 
