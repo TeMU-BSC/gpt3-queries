@@ -38,8 +38,8 @@ for lang in MODELS_DICT:
 rouge = datasets.load_metric('rouge')
 
 def get_prediction(text,ckpt,lang):
-    tokenizer = models['lang']['tokenizer']
-    model = models['lang']['model']
+    tokenizer = models[lang]['tokenizer']
+    model = models[lang]['model']
     if lang in ['en','de']:
         inputs = tokenizer([text], return_tensors="pt")
     else:
