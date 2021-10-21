@@ -57,7 +57,8 @@ for e in tqdm(dataset):
         rouge_score = get_rouge(e['highlights'],prediction)
         if rouge_score >= 0.1:
             en_dataset.append({'text': e['article'], 'summary': e['highlights']})
-        if len(en_dataset) == 500:
+            print(len(en_dataset), 'of', SAMPLE_SIZE)
+        if len(en_dataset) == SAMPLE_SIZE:
             break
 #sampled['en'] = list(np.random.choice(en_dataset, size=SAMPLE_SIZE, replace=False))
 sampled['en'] = en_dataset
@@ -71,7 +72,8 @@ for lang in mlsum_langs:
             rouge_score = get_rouge(e['summary'],prediction)
             if rouge_score >= 0.1:
                 lang_dataset.append({'text': e['text'], 'summary': e['summary']})
-            if len(lang_dataset) == 500:
+                print(len(lang_dataset), 'of', SAMPLE_SIZE)
+            if len(lang_dataset) == SAMPLE_SIZE:
                 break
     sampled[lang] = lang_dataset#list(np.random.choice(lang_dataset, size=SAMPLE_SIZE, replace=False))
 
