@@ -13,15 +13,16 @@ ARTICLES_DICT = {'ca': ['un','una','uns','unes','el','la','els','les'],
      'es': ['uno','una','unos','unas','el','la','los','las'],
      'ru': [],
      'de': ['ein','eine','einen','einem','einer','eines','der','das','die','den','dem','der','den','des'],
-     'tu': [],
      'en': ['a','an','the']
     }
 
 def normalize_answer(s, lang):
     """Lower text and remove punctuation, articles and extra whitespace."""
     def remove_articles(text, lang):
-        regex = r'\b('+"|".join(ARTICLES_DICT[lang])+r')\b'
-        return re.sub(regex, ' ', text)
+        if lang in ARTICLES_DICT:
+            regex = r'\b('+"|".join(ARTICLES_DICT[lang])+r')\b'
+            text = re.sub(regex, ' ', text)
+        return text
 
     def white_space_fix(text):
         return ' '.join(text.split())
