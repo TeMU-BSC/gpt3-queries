@@ -112,7 +112,7 @@ def get_gpt_answer(q: Question, lang: str) -> str:
                 break
         # answer = answer.splitlines()[0]
     answer = answer.strip()
-    if answer[-1] == '.':
+    if len(answer) > 1 and answer[-1] == '.':
         answer = answer[:-1]
     return answer
 
