@@ -7,12 +7,21 @@ import re
 import argparse
 import json
 import sys
+import numpy as np
 
+ARTICLES_DICT = {'ca': ['un','una','uns','unes','el','la','els','les'],
+     'es': ['uno','una','unos','unas','el','la','los','las'],
+     'ru': [],
+     'de': ['ein','eine','einen','einem','einer','eines','der','das','die','den','dem','der','den','des'],
+     'tu': [],
+     'en': ['a','an','the']
+    }
 
-def normalize_answer(s):
+def normalize_answer(s, lang):
     """Lower text and remove punctuation, articles and extra whitespace."""
-    def remove_articles(text):
-        return re.sub(r'\b(a|an|the)\b', ' ', text)
+    def remove_articles(text, lang):
+        regex = r'\b('+"|".join(ARTICLES_DICT[lang])+r')\b'
+        return re.sub(regex, ' ', text)
 
     def white_space_fix(text):
         return ' '.join(text.split())
@@ -24,12 +33,12 @@ def normalize_answer(s):
     def lower(text):
         return text.lower()
 
-    return white_space_fix(remove_articles(remove_punc(lower(s))))
+    return white_space_fix(remove_articles(remove_punc(lower(s)),lang))
 
 
-def f1_score(prediction, ground_truth):
-    prediction_tokens = normalize_answer(prediction).split()
-    ground_truth_tokens = normalize_answer(ground_truth).split()
+def f1_score(prediction, ground_truth, lang):
+    prediction_tokens = normalize_answer(prediction, lang).split()
+    ground_truth_tokens = normalize_answer(ground_truth, lang).split()
     common = Counter(prediction_tokens) & Counter(ground_truth_tokens)
     num_same = sum(common.values())
     if num_same == 0:
@@ -40,40 +49,27 @@ def f1_score(prediction, ground_truth):
     return f1
 
 
-def exact_match_score(prediction, ground_truth):
-    return (normalize_answer(prediction) == normalize_answer(ground_truth))
+def exact_match_score(prediction, ground_truth, lang):
+    return (normalize_answer(prediction, lang) == normalize_answer(ground_truth, lang))
 
 
-def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
-    scores_for_ground_truths = []
-    for ground_truth in ground_truths:
-        score = metric_fn(prediction, ground_truth)
-        scores_for_ground_truths.append(score)
-    return max(scores_for_ground_truths)
-
-
-def evaluate(dataset, predictions):
-    f1 = exact_match = total = 0
-    for article in dataset:
-        for paragraph in article['paragraphs']:
-            for qa in paragraph['qas']:
-                total += 1
-                if qa['id'] not in predictions:
-                    message = 'Unanswered question ' + qa['id'] + \
-                              ' will receive score 0.'
-                    print(message, file=sys.stderr)
-                    continue
-                ground_truths = list(map(lambda x: x['text'], qa['answers']))
-                prediction = predictions[qa['id']]
-                exact_match += metric_max_over_ground_truths(
-                    exact_match_score, prediction, ground_truths)
-                f1 += metric_max_over_ground_truths(
-                    f1_score, prediction, ground_truths)
-
-    exact_match = 100.0 * exact_match / total
-    f1 = 100.0 * f1 / total
-
-    return {'exact_match': exact_match, 'f1': f1}
+def evaluate(dataset):
+    langs = ['de','en','es','global'] #'ru', 'tu', 'ca'
+    results = {}
+    for lang in langs:
+        results[lang] = {'f1': [], 'exact_match': []}
+    for question in dataset:
+        lang = question['lang'][-2:]
+        prediction = list(question.values())[0]
+        gt = question['question']['true_answer']
+        results[lang]['f1'].append(f1_score(prediction, gt, lang))
+        results[lang]['exact_match'].append(exact_match_score(prediction, gt, lang))
+        results['global']['f1'].append(f1_score(prediction, gt, lang))
+        results['global']['exact_match'].append(exact_match_score(prediction, gt, lang))
+    for lang in langs:
+        results[lang]['f1'] = np.mean(results[lang]['f1'])
+        results[lang]['exact_match'] =  np.mean(results[lang]['exact_match'])
+    return results
 
 
 if __name__ == '__main__':
@@ -81,15 +77,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Evaluation for SQuAD ' + expected_version)
     parser.add_argument('dataset_file', help='Dataset file')
-    parser.add_argument('prediction_file', help='Prediction File')
     args = parser.parse_args()
     with open(args.dataset_file) as dataset_file:
-        dataset_json = json.load(dataset_file)
-        if (dataset_json['version'] != expected_version):
-            print('Evaluation expects v-' + expected_version +
-                  ', but got dataset with v-' + dataset_json['version'],
-                  file=sys.stderr)
-        dataset = dataset_json['data']
-    with open(args.prediction_file) as prediction_file:
-        predictions = json.load(prediction_file)
-    print(json.dumps(evaluate(dataset, predictions)))
+        dataset = [json.loads(line) for line in dataset_file.readlines()]
+    print(json.dumps(evaluate(dataset)))
