@@ -124,7 +124,7 @@ if __name__ == '__main__':
     sha = repo.head.object.hexsha
     extra_id = uuid.uuid4().hex
     dataset_name = os.path.basename(DATASET)
-    output_directory = os.path.join(output_path, f'{dataset_name}-{timestamp}-{sha[:4]}-{extra_id[:4]}')
+    output_directory = os.path.join(output_path, f'{config.engine}-{dataset_name}-{timestamp}-{sha[:4]}-{extra_id[:4]}')
     os.makedirs(output_directory)
 
     with open(os.path.join(output_directory, 'args.json'), 'w') as f:

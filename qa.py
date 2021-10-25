@@ -116,7 +116,7 @@ if __name__ == '__main__':
     repo = git.Repo(search_parent_directories=True)
     sha = repo.head.object.hexsha
     extra_id = uuid.uuid4().hex
-    output_directory = os.path.join(output_path, f'{timestamp}-{sha[:4]}-{extra_id[:4]}')
+    output_directory = os.path.join(output_path, f'{config.engine}-{timestamp}-{sha[:4]}-{extra_id[:4]}')
     os.makedirs(output_directory)
 
     with open(os.path.join(output_directory, 'args.json'), 'w') as f:
