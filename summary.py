@@ -11,14 +11,14 @@ from typing import Dict
 from dataclasses import asdict
 from transformers import GPT2TokenizerFast
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
-# ENGINE = "davinci"
+#ENGINE = "davinci"
 ENGINE = "ada"
-TEMPERATURE = 0.7
+TEMPERATURE = 0#0.7
 # MAX_TOKENS = 64
-TOP_P = 1
-FREQUENCY_PENALTY = 0
+TOP_P = 0.95
+FREQUENCY_PENALTY = 2
 PRESENCE_PENALTY = 0
-DATASET = 'with_ca_mlsum_sample.json'
+DATASET = 'with_ca_mlsum_sample_def.json'
 MAX_TOKENS_UPPER = 2048
 #MAX_TOKENS_DICT = {'ca': 6395,
 #                     'es': 9421,
@@ -39,7 +39,7 @@ class GPTConfig:
     engine: str
     temperature: float
     max_tokens: int
-    top_p: int
+    top_p: float
     frequency_penalty: float
     presence_penalty: float
     dataset: str
@@ -64,14 +64,25 @@ class Summary:
     lang: str
 
 
+# def get_prompt(summary: Summary) -> str:
+#     text = summary.text
+#     prompt_dict = {'ca': f'Això és un sistema de resum de textos en català.\nText: {text}\nResum:',
+#      'es': f'Esto es un sistema de resumen de textos en castellano.\nTexto: {text}\nResumen:',
+#      'ru': f'Это система суммаризации текстов на русском языке.\nТекст: {text}\nРезюме:',
+#      'de': f'Das ist ein system zur Textextrahierung auf Deutsch\nText: {text}\nZusammenfassung:',
+#      'tu': f'Bu Türkçe dilinde bir metin özetleme sistemidir.\nMetin: {text}\nÖzet:',
+#                    'en': f'This is a text summarization system in English.\nText: {text}\nSummary:'}
+#                    'en': f'{text} TL;DR:'}
+#     return prompt_dict[summary.lang]
+
 def get_prompt(summary: Summary) -> str:
     text = summary.text
-    prompt_dict = {'ca': f'Això és un sistema de resum de textos en català.\nText: {text}\nResum:',
-     'es': f'Esto es un sistema de resumen de textos en castellano.\nTexto: {text}\nResumen:',
-     'ru': f'Это система суммаризации текстов на русском языке.\nТекст: {text}\nРезюме:',
-     'de': f'Das ist ein system zur Textextrahierung auf Deutsch\nText: {text}\nZusammenfassung:',
-     'tu': f'Bu Türkçe dilinde bir metin özetleme sistemidir.\nMetin: {text}\nÖzet:',
-                   'en': f'This is a text summarization system in English.\nText: {text}\nSummary:'}
+    prompt_dict = {'ca': f'{text} TL;DR:',
+     'es': f'{text} TL;DR:',
+     'ru': f'{text} TL;DR:',
+     'de': f'{text} TL;DR:',
+     'tu': f'{text} TL;DR:',
+                   'en': f'{text} TL;DR:'}
     return prompt_dict[summary.lang]
 
 
@@ -87,19 +98,20 @@ def get_gpt_summary(summary: Summary) -> Summary:
         engine=ENGINE,
         prompt=prompt,
         temperature=TEMPERATURE,
-        max_tokens=MAX_TOKENS_UPPER-len(tokenizer(prompt)['input_ids']),
+        max_tokens=MAX_TOKENS_UPPER-len(tokenizer(prompt)['input_ids']),#min(MAX_TOKENS_UPPER-len(tokenizer(prompt)['input_ids']), 100),#MAX_TOKENS_UPPER-len(tokenizer(prompt)['input_ids']),
         top_p=TOP_P,
         frequency_penalty=FREQUENCY_PENALTY,
         presence_penalty=PRESENCE_PENALTY,
-        stop=STOP_SEQUENCES_DICT[summary.lang]
+        stop=STOP_SEQUENCES_DICT[summary.lang],
+        #echo=True
     )
     ans = response.last_response.data['choices'][0]['text']
-    if '\n' in ans:
-        lines = ans.splitlines()
-        for line in lines:
-            if len(line.split()) > 0:
-                ans = line
-                break
+    #if '\n' in ans:
+    #    lines = ans.splitlines()
+    #    for line in lines:
+    #        if len(line.split()) > 0:
+    #            ans = line
+    #            break
     ans = ans.strip()
     summary.summary_model = ans
     return summary
@@ -119,9 +131,10 @@ if __name__ == '__main__':
         json.dump(vars(config), f)
     data = get_dataset_instances(DATASET)
 
-    max_per_lang = 5
+    max_per_lang = 2
     for lang in tqdm(data):
         if lang == 'ru': continue
+        #if lang != 'en': continue
         i = 0
         for summary_dict in tqdm(data[lang]):
             summary = Summary(text=summary_dict['text'], summary_model=None, summary_gt=summary_dict['summary'], lang=lang)
@@ -129,5 +142,7 @@ if __name__ == '__main__':
                 gpt_summary = asdict(get_gpt_summary(summary))
                 f.write(json.dumps(gpt_summary) + '\n')
             i += 1
-            if i == max_per_lang:
-                break
+            #if i == max_per_lang:
+            #    break
+    #from prettify import prettify
+    #prettify(os.path.join(output_directory, 'gpt_summaries.json'))
