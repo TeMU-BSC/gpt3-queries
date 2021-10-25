@@ -8,15 +8,18 @@ import git
 import uuid
 from tqdm import tqdm
 from datasets import load_dataset
+from transformers import GPT2Tokenizer
 
 #ENGINE = "davinci"
 ENGINE = "ada"
 TEMPERATURE = 0
-MAX_TOKENS = 64
+MAX_TOKENS = 128
 TOP_P = 0.95
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
 LANGS = ['xquad.en', 'xquad.de', 'xquad.es', 'xquad.ru', 'xquad.tr', 'xquad.ca']
+
+UPPER_MAX_TOKENS = 2048
 
 STOP_SEQUENCES_DICT = {'ca': ['\nContext:', '\nPregunta:'],
                        'es': ['\nContexto:', '\nPregunta'],
@@ -55,6 +58,7 @@ config = GPTConfig(engine=ENGINE,
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
 @dataclass
 class Question:
@@ -85,6 +89,9 @@ def get_gpt_answer(q: Question, lang: str) -> str:
     question = q.question
     context = q.context
     prompt = prompt_dict(context, question, lang)
+
+    if len(tokenizer(prompt)['input_ids']) + MAX_TOKENS > UPPER_MAX_TOKENS:
+        return ''
 
     response = openai.Completion.create(
         engine=ENGINE,
