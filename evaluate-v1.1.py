@@ -11,7 +11,6 @@ import numpy as np
 
 ARTICLES_DICT = {'ca': ['un','una','uns','unes','el','la','els','les'],
      'es': ['uno','una','unos','unas','el','la','los','las'],
-     'ru': [],
      'de': ['ein','eine','einen','einem','einer','eines','der','das','die','den','dem','der','den','des'],
      'en': ['a','an','the']
     }
