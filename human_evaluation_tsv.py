@@ -4,7 +4,7 @@ import os
 from sentence_splitter import split_text_into_sentences
 import sys
 import pandas as pd
-
+import re
 # Select a sample of 60 sentences (deduped)
 # With that same headline, generate sentences with GPT-3 and select a sample of 60 sentences
 # Randomize sentences, all annotate 120 sentence
@@ -16,7 +16,9 @@ def get_random_sample(text, lang):
     sentences = split_text_into_sentences(text=text, language=lang)
     # Deduplicate sentences
     sentences_dedup = list(set(sentences))
-    sentences_sample = random.choices(sentences_dedup, k=60)
+    # Remove sentences that don't contain letters
+    sentences_clean = [sentence for sentence in sentences if re.match(r'[a-zA-Z]{2,}',sentence)]
+    sentences_sample = random.choices(sentences_clean, k=60)
     return sentences_sample
 
 if __name__ == '__main__':
@@ -40,5 +42,5 @@ if __name__ == '__main__':
     human_eval_random = human_eval.sample(frac=1)
 
     human_eval_tsv = os.path.join('data','human_eval',lang+'.tsv')
-    human_eval_random.to_csv(human_eval_tsv)
+    human_eval_random.to_csv(human_eval_tsv,sep='\t')
 
