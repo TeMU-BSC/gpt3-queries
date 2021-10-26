@@ -18,7 +18,7 @@ TEMPERATURE = 0#0.7
 TOP_P = 0.95
 FREQUENCY_PENALTY = 2
 PRESENCE_PENALTY = 0
-DATASET = 'with_ca_mlsum_sample_def.json'
+DATASET = 'with_ca_mlsum_sample.json'  # /gpfs/scratch/bsc88/bsc88218/with_ca_mlsum_sample.json
 MAX_TOKENS_UPPER = 2048
 #MAX_TOKENS_DICT = {'ca': 6395,
 #                     'es': 9421,
