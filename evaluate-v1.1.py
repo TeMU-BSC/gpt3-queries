@@ -54,7 +54,7 @@ def exact_match_score(prediction, ground_truth, lang):
 
 
 def evaluate(dataset):
-    langs = ['de','en','es','global'] #'ru', 'tu', 'ca'
+    langs = ['ca','de','en','es','ru','tr','global']
     results = {}
     for lang in langs:
         results[lang] = {'f1': [], 'exact_match': []}
