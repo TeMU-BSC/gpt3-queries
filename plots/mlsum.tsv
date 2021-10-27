@@ -1,0 +1,21 @@
+Model	Score	Language	Metric
+ada	 0.316	ca	F1
+babbage	 0.327	ca	F1
+curie	 0.36	ca	F1
+davinci		ca	F1
+ada	 0.183	de	F1
+babbage	 0.198	de	F1
+curie	 0.221	de	F1
+davinci		de	F1
+ada	 0.265	en	F1
+babbage	 0.276	en	F1
+curie	 0.289	en	F1
+davinci		en	F1
+ada	 0.209	es	F1
+babbage	 0.224	es	F1
+curie	 0.24	es	F1
+davinci		es	F1
+ada	 0.205	tu	F1
+babbage	 0.238	tu	F1
+curie	 0.265	tu	F1
+davinci			F1
