@@ -1,3 +1,4 @@
+# TODO: treure \n per whitespace, afegir max 3 linies i tambe, break line, prou
 # Usage example: python3 evaluate_rouge.py data/gpt_summaries.json 
 import argparse
 import json
@@ -5,8 +6,20 @@ import datasets
 from itertools import chain 
 import pprint
 import numpy as np 
+from sentence_splitter import split_text_into_sentences
 
 rouge = datasets.load_metric('rouge')
+
+def process(summary, lang):
+    if lang == 'tu':
+        lang = 'tr'
+    if '\n' in summary:
+        chopped_summary = summary.index('\n')
+        summary = summary[:chopped_summary]
+    split_summary = split_text_into_sentences(text=summary, language=lang)
+    summary_top_3 = ' '.join(split_summary[0:3])
+    return summary_top_3
+    
 
 def get_rouge(ground_truths,predictions):
     rouge_score = rouge.compute(predictions=predictions, references=ground_truths)
@@ -23,6 +36,8 @@ def evaluate(dataset):
         results[lang] = {'rouge':{}, 'summary_lengths': {}}
     for article in dataset:
         article_json = json.loads(article)
+        article_json['summary_gt'] = article_json['summary_gt'].replace(' .\n','. ')
+        article_json['summary_model'] = process(article_json['summary_model'], article_json['lang'])
         processed_data[article_json['lang']]['ground_truths'].append(article_json['summary_gt'])
         processed_data[article_json['lang']]['predictions'].append(article_json['summary_model'])
         processed_data[article_json['lang']]['lengths_gt'].append(len(article_json['summary_gt'].split()))
@@ -48,4 +63,14 @@ if __name__ == '__main__':
     with open(args.dataset_file) as dataset_file:
         dataset = dataset_file.readlines()
     pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(evaluate(dataset))
+    results = evaluate(dataset)
+    pp.pprint(results)
+    for score in ['fmeasure','precision','recall','avg_gt','avg_model','std_gt','std_model']:
+        scores = []
+        print(score)
+        for lang in ["ca","de",'en','es','tu','global']:
+            try:
+                scores.append(str(results[lang]['rouge'][score]).replace('.',','))
+            except:
+                scores.append(str(results[lang]['summary_lengths'][score]).replace('.',','))
+        print(';'.join(scores))
