@@ -1,10 +1,13 @@
 import random
 import json
 import os
+import string
+
 from sentence_splitter import split_text_into_sentences
 import sys
 import pandas as pd
 import re
+from sacremoses import MosesPunctNormalizer, MosesTokenizer, MosesDetokenizer
 # Select a sample of 60 sentences (deduped)
 # With that same headline, generate sentences with GPT-3 and select a sample of 60 sentences
 # Randomize sentences, all annotate 120 sentence
@@ -12,8 +15,38 @@ import re
 SEED = 42
 random.seed(SEED)
 
-def normalize(sentence):
-    #TODO
+
+def normalize(sentence, lang):
+    sentence = ' ' + ' '.join(sentence.split()) + ' '
+    if lang in ['ca']:
+        consonants_apost = '|'.join(list("dlmnst") + list('DLMNST'))
+        vocals = '|'.join(list('aeiou' + 'AEIOU' + 'àèéíòóúïü' + 'ÀÈÉÍÒÓÚÏÜ'))
+        sentence = re.sub(f"(-| )({consonants_apost})( )*(')( )*(h|H)?( )*({vocals})", r'\1\2\3__APOST__\5\6\7\8', sentence)
+        sentence = sentence.replace("'", '"')
+        sentence = sentence.replace('__APOST__', "'")
+    sentence = re.sub(r'(\w| )(\.\.\. )', r'\1… ', sentence)
+    for quote in ['"', "“", "”", "‘", "’", "«", "»", "‹", "›", "„", "“"]:
+        sentence.replace(quote, '"')
+    while True:
+        new_sentence = sentence
+        for c in string.punctuation:
+            new_sentence = new_sentence.replace(c + c, c)
+        if new_sentence == sentence:
+            break
+        sentence = new_sentence
+    sentence = sentence.replace('…', '...')
+    sentence = sentence.strip()
+    mt = MosesTokenizer(lang)
+    mdt = MosesDetokenizer(lang)
+    mn = MosesPunctNormalizer(lang)
+    sentence = mn.normalize(sentence)
+    sentence = mdt.detokenize(mt.tokenize(sentence, aggressive_dash_splits=False, escape=False), unescape=False)
+    if lang in ['ca']:
+        consonants_apost = '|'.join(list("dlmnst") + list('DLMNST'))
+        vocals = '|'.join(list('aeiou' + 'AEIOU' + 'àèéíòóúïü' + 'ÀÈÉÍÒÓÚÏÜ'))
+        sentence = re.sub(f"({consonants_apost})( )(')(h|H)?({vocals})", r'\1\3\4\5', sentence)
+    return sentence
+
 
 def get_random_sample(text, lang):
     sentences = split_text_into_sentences(text=text, language=lang)
@@ -24,7 +57,7 @@ def get_random_sample(text, lang):
     # Filter sentences that are smaller than three words
     sentences_filtered = [sentence for sentence in sentences_clean if len(sentence.split())>2]
     # Normalize punctuation
-    sentences_norm = [normalize(sentence) for sentence in sentences_filtered]
+    sentences_norm = [normalize(sentence, lang) for sentence in sentences_filtered]
 
     sentences_sample = random.choices(sentences_norm, k=60)
     return sentences_sample
