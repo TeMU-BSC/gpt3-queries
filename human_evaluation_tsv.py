@@ -48,7 +48,7 @@ def normalize(sentence, lang):
     return sentence
 
 
-def get_random_sample(text, lang, samples_per_article):
+def clean_sentences(text, lang):
     sentences = split_text_into_sentences(text=text, language=lang)
     # Remove sentences that don't contain letters
     sentences_clean = [sentence for sentence in sentences if re.match(r'[a-zA-Z]{2,}',sentence)]
@@ -56,12 +56,9 @@ def get_random_sample(text, lang, samples_per_article):
     sentences_filtered = [sentence for sentence in sentences_clean if len(sentence.split())>=10 and len(sentence.split())<=40]
     # Normalize punctuation
     sentences_norm = [normalize(sentence, lang) for sentence in sentences_filtered]
-    # Random sample 3 sentences
-    try:
-        sentence_sample = random.choices(sentences_norm, k=3)
-    except:
-        sentence_sample = ['']
-    return sentence_sample
+    # Deduplicate sentences
+    sentences_dedup = list(set(sentences_norm))
+    return sentences_dedup
 
 if __name__ == '__main__':
     lang = sys.argv[1]
@@ -77,9 +74,30 @@ if __name__ == '__main__':
     human_eval = pd.DataFrame()
     for model in models:
         samples_per_article = []
+        bag_of_sentences = []
+        clean_sents_per_article = []
         for article in models[model]:
-            sentence_sample = get_random_sample(article, lang, samples_per_article)
-            samples_per_article.extend(sentence_sample)
+            # Return a list of clean sentences per article
+            sentences_clean = clean_sentences(article, lang)
+            # If the clean sentences are three or less, add all of them to the final sample
+            if len(sentences_clean) <= 3:
+                sample = sentences_clean
+                samples_per_article.extend(sample)
+            # If there are more than 3 clean sentences, add three random to the final sample and store the other ones
+            elif len(sentences_clean) > 3:
+                sample = random.sample(sentences_clean, k=3)
+                samples_per_article.extend(sample)
+                bag_of_sentences.extend(set(sample).symmetric_difference(set(sentences_clean)))
+            else:
+                continue
+        
+        # Add random sentences of the stored ones to make it up to 60
+        if len(samples_per_article) < 60:
+            k = 60 - len(samples_per_article)
+            bag_of_sentences = set(bag_of_sentences)
+            bag_sample = random.sample(list(bag_of_sentences), k=k)
+            samples_per_article.extend(bag_sample)
+        # Create dataframe
         sample_model = list(zip(samples_per_article, [model]*60))
         human_eval = human_eval.append(sample_model, ignore_index=True)
     human_eval = human_eval.rename(columns={0:'sentence',1:'model'})
