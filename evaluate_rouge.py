@@ -37,6 +37,7 @@ def evaluate(dataset):
     for article in dataset:
         article_json = json.loads(article)
         article_json['summary_gt'] = article_json['summary_gt'].replace(' .\n','. ')
+        article_json['summary_gt'] = article_json['summary_gt'].replace('\n',' ')
         article_json['summary_model'] = process(article_json['summary_model'], article_json['lang'])
         processed_data[article_json['lang']]['ground_truths'].append(article_json['summary_gt'])
         processed_data[article_json['lang']]['predictions'].append(article_json['summary_model'])
