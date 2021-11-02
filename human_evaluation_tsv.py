@@ -12,6 +12,9 @@ import re
 SEED = 42
 random.seed(SEED)
 
+def normalize(sentence):
+    #TODO
+
 def get_random_sample(text, lang):
     sentences = split_text_into_sentences(text=text, language=lang)
     # Deduplicate sentences
@@ -20,8 +23,10 @@ def get_random_sample(text, lang):
     sentences_clean = [sentence for sentence in sentences_dedup if re.match(r'[a-zA-Z]{2,}',sentence)]
     # Filter sentences that are smaller than three words
     sentences_filtered = [sentence for sentence in sentences_clean if len(sentence.split())>2]
+    # Normalize punctuation
+    sentences_norm = [normalize(sentence) for sentence in sentences_filtered]
 
-    sentences_sample = random.choices(sentences_filtered, k=60)
+    sentences_sample = random.choices(sentences_norm, k=60)
     return sentences_sample
 
 if __name__ == '__main__':
