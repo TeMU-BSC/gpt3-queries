@@ -17,8 +17,11 @@ def get_random_sample(text, lang):
     # Deduplicate sentences
     sentences_dedup = list(set(sentences))
     # Remove sentences that don't contain letters
-    sentences_clean = [sentence for sentence in sentences if re.match(r'[a-zA-Z]{2,}',sentence)]
-    sentences_sample = random.choices(sentences_clean, k=60)
+    sentences_clean = [sentence for sentence in sentences_dedup if re.match(r'[a-zA-Z]{2,}',sentence)]
+    # Filter sentences that are smaller than three words
+    sentences_filtered = [sentence for sentence in sentences_clean if len(sentence.split())>2]
+
+    sentences_sample = random.choices(sentences_filtered, k=60)
     return sentences_sample
 
 if __name__ == '__main__':
@@ -39,8 +42,9 @@ if __name__ == '__main__':
         human_eval = human_eval.append(sample_model, ignore_index=True)
     human_eval = human_eval.rename(columns={0:'sentence',1:'model'})
     # random
-    human_eval_random = human_eval.sample(frac=1)
+    #human_eval_random = human_eval.sample(frac=1)
+    #human_eval_random.to_csv(human_eval_tsv,sep='\t')
 
     human_eval_tsv = os.path.join('data','human_eval',lang+'.tsv')
-    human_eval_random.to_csv(human_eval_tsv,sep='\t')
+    human_eval.to_csv(human_eval_tsv,sep='\t')
 
