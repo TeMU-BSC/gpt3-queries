@@ -69,7 +69,6 @@ def clean_sentences(text, lang):
     for sentence in sentences_filtered:
         if sentence[0].isalpha and sentence[0].islower():
             sentences_filtered.remove(sentence)
-            print(sentence)
     # Remove sentences that don't end in punctuation sign
     sentences_punct = [sentence for sentence in sentences_filtered if re.match(r'.*[!?."\':;]$',sentence)]
     # Deduplicate sentences
@@ -123,5 +122,5 @@ if __name__ == '__main__':
     #human_eval_random = human_eval.sample(frac=1)
     #human_eval_random.to_csv(human_eval_tsv,sep='\t')
 
-    human_eval_tsv = os.path.join('data','human_eval',lang+'_punct_end.tsv')
+    human_eval_tsv = os.path.join('data','human_eval',lang+'.tsv')
     human_eval.to_csv(human_eval_tsv,sep='\t',quoting=csv.QUOTE_NONE)
