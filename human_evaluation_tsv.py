@@ -28,7 +28,7 @@ def normalize(sentence, lang):
         sentence = sentence.replace("'", '"')
         sentence = sentence.replace('__APOST__', "'")
     elif lang in ['en']:
-        sentence = re.sub("(\w)(')(\w)", r'\1__APOST__\3', sentence)
+        sentence = re.sub("([a-zA-Z])(')([a-zA-Z])", r'\1__APOST__\3', sentence)
         sentence = sentence.replace("'", '"')
         sentence = sentence.replace("__APOST__", "'")
     sentence = re.sub(r'(\w| )(\.\.\. )', r'\1… ', sentence)
