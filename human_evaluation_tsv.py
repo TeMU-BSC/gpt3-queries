@@ -59,16 +59,19 @@ def normalize(sentence, lang):
 
 def clean_sentences(text, lang):
     sentences = split_text_into_sentences(text=text, language=lang)
-    # Remove sentences that don't contain letters
-    sentences_clean = [sentence for sentence in sentences if re.match(r'[a-zA-Z]{2,}',sentence)]
-    # Remove sentences that don't end in punctuation sign
-    sentences_punct = [sentence for sentence in sentences_clean if re.match(r'.*[!?."\':;]$',sentence)]
-    # Filter sentences that are smaller than ten words and smaller than 40
-    sentences_filtered = [sentence for sentence in sentences_punct if len(sentence.split())>=10 and len(sentence.split())<=40]
     # Normalize punctuation
-    sentences_norm = [normalize(sentence, lang) for sentence in sentences_filtered]
+    sentences_norm = [normalize(sentence, lang) for sentence in sentences]
+    # Filter sentences that are smaller than ten words and smaller than 40
+    sentences_filtered = [sentence for sentence in sentences_norm if len(sentence.split())>=10 and len(sentence.split())<=40]
+    # Remove sentences if first character is lowercase
+    for sentence in sentences_filtered:
+        if sentence[0].isalpha and sentence[0].islower():
+            sentences_filtered.remove(sentence)
+            print(sentence)
+    # Remove sentences that don't end in punctuation sign
+    sentences_punct = [sentence for sentence in sentences_filtered if re.match(r'.*[!?."\':;]$',sentence)]
     # Deduplicate sentences
-    sentences_dedup = list(set(sentences_norm))
+    sentences_dedup = list(set(sentences_punct))
     return sentences_dedup
 
 if __name__ == '__main__':
@@ -101,7 +104,8 @@ if __name__ == '__main__':
                 bag_of_sentences.extend(set(sample).symmetric_difference(set(sentences_clean)))
             else:
                 continue
-        
+        print(len(bag_of_sentences))
+        print(60-len(samples_per_article))
         # Add random sentences of the stored ones to make it up to 60
         if len(samples_per_article) < 60:
             k = 60 - len(samples_per_article)
