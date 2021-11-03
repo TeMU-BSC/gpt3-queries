@@ -54,6 +54,8 @@ def normalize(sentence, lang):
         vocals = '|'.join(list('aeiou' + 'AEIOU' + 'àèéíòóúïü' + 'ÀÈÉÍÒÓÚÏÜ'))
         sentence = re.sub(f"({consonants_apost})( )(')(h|H)?({vocals})", r'\1\3\4\5', sentence)
         sentence = re.sub(f"({consonants_apost})(')( )(h|H)?({vocals})", r'\1\2\4\5', sentence)
+        # Fix geminated l
+        sentence = re.sub(r'(l( )*\.( )*l)|(l( )*·( )*l)|(l( )*•( )*l)', 'l·l', sentence)
     return sentence
 
 
