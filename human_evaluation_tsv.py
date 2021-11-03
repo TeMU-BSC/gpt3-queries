@@ -4,6 +4,7 @@ import os
 import string
 import csv
 
+import ftfy
 from sentence_splitter import split_text_into_sentences
 import sys
 import pandas as pd
@@ -18,6 +19,7 @@ random.seed(SEED)
 
 
 def normalize(sentence, lang):
+    sentence = ftfy.fix_text(sentence)
     sentence = ' ' + ' '.join(sentence.split()) + ' '
     quotes = ['"', "“", "”", "‘", "’", "«", "»", "‹", "›", "„", "“"]
     if lang in ['ca']:
@@ -34,7 +36,6 @@ def normalize(sentence, lang):
     sentence = re.sub(r'(\w| )(\.\.\. )', r'\1… ', sentence)
     for quote in quotes:
         sentence.replace(quote, '"')
-    sentence = sentence.replace('\u201c', '"')
     sentence = sentence.replace('"', '')
     while True:
         new_sentence = sentence
