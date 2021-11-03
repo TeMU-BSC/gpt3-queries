@@ -105,8 +105,7 @@ if __name__ == '__main__':
                 bag_of_sentences.extend(set(sample).symmetric_difference(set(sentences_clean)))
             else:
                 continue
-        print(len(bag_of_sentences))
-        print(60-len(samples_per_article))
+                
         # Add random sentences of the stored ones to make it up to 60
         if len(samples_per_article) < 60:
             k = 60 - len(samples_per_article)
