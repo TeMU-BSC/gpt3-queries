@@ -2,6 +2,7 @@ import random
 import json
 import os
 import string
+import csv
 
 from sentence_splitter import split_text_into_sentences
 import sys
@@ -116,4 +117,4 @@ if __name__ == '__main__':
     #human_eval_random.to_csv(human_eval_tsv,sep='\t')
 
     human_eval_tsv = os.path.join('data','human_eval',lang+'_punct_end.tsv')
-    human_eval.to_csv(human_eval_tsv,sep='\t')
+    human_eval.to_csv(human_eval_tsv,sep='\t',quoting=csv.QUOTE_NONE)
