@@ -34,6 +34,7 @@ def normalize(sentence, lang):
     sentence = re.sub(r'(\w| )(\.\.\. )', r'\1… ', sentence)
     for quote in quotes:
         sentence.replace(quote, '"')
+    sentence = sentence.replace('\u201c', '"')
     sentence = sentence.replace('"', '')
     while True:
         new_sentence = sentence
