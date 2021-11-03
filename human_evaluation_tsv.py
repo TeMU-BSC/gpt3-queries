@@ -71,6 +71,8 @@ def clean_sentences(text, lang):
     for sentence in sentences_filtered:
         if sentence[0].isalpha and sentence[0].islower():
             sentences_filtered.remove(sentence)
+        if sentence[0] in string.punctuation:
+            sentences_filtered.remove(sentence)
     # Remove sentences that don't end in punctuation sign
     sentences_punct = [sentence for sentence in sentences_filtered if re.match(r'.*[!?."\':;]$',sentence)]
     # Deduplicate sentences
