@@ -18,14 +18,16 @@ random.seed(SEED)
 
 def normalize(sentence, lang):
     sentence = ' ' + ' '.join(sentence.split()) + ' '
+    quotes = ['"', "“", "”", "‘", "’", "«", "»", "‹", "›", "„", "“"]
     if lang in ['ca']:
         consonants_apost = '|'.join(list("dlmnst") + list('DLMNST'))
         vocals = '|'.join(list('aeiou' + 'AEIOU' + 'àèéíòóúïü' + 'ÀÈÉÍÒÓÚÏÜ'))
-        sentence = re.sub(f"(-| )({consonants_apost})( )*(')( )*(h|H)?( )*({vocals})", r'\1\2\3__APOST__\5\6\7\8', sentence)
+        punct = '|'.join(list(map(re.escape, list(string.punctuation))) + quotes + ["'"])
+        sentence = re.sub(f"(-| |{punct})({consonants_apost})( )*(')( )*(h|H)?( )*({vocals})", r'\1\2\3__APOST__\5\6\7\8', sentence)
         sentence = sentence.replace("'", '"')
         sentence = sentence.replace('__APOST__', "'")
     sentence = re.sub(r'(\w| )(\.\.\. )', r'\1… ', sentence)
-    for quote in ['"', "“", "”", "‘", "’", "«", "»", "‹", "›", "„", "“"]:
+    for quote in quotes:
         sentence.replace(quote, '"')
     while True:
         new_sentence = sentence
