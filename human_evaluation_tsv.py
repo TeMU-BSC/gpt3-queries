@@ -52,8 +52,10 @@ def clean_sentences(text, lang):
     sentences = split_text_into_sentences(text=text, language=lang)
     # Remove sentences that don't contain letters
     sentences_clean = [sentence for sentence in sentences if re.match(r'[a-zA-Z]{2,}',sentence)]
+    # Remove sentences that don't end in punctuation sign
+    sentences_punct = [sentence for sentence in sentences_clean if re.match(r'.*[!?."\':;]$',sentence)]
     # Filter sentences that are smaller than ten words and smaller than 40
-    sentences_filtered = [sentence for sentence in sentences_clean if len(sentence.split())>=10 and len(sentence.split())<=40]
+    sentences_filtered = [sentence for sentence in sentences_punct if len(sentence.split())>=10 and len(sentence.split())<=40]
     # Normalize punctuation
     sentences_norm = [normalize(sentence, lang) for sentence in sentences_filtered]
     # Deduplicate sentences
@@ -106,5 +108,5 @@ if __name__ == '__main__':
     #human_eval_random = human_eval.sample(frac=1)
     #human_eval_random.to_csv(human_eval_tsv,sep='\t')
 
-    human_eval_tsv = os.path.join('data','human_eval',lang+'_test.tsv')
+    human_eval_tsv = os.path.join('data','human_eval',lang+'_punct_end.tsv')
     human_eval.to_csv(human_eval_tsv,sep='\t')
