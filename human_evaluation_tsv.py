@@ -53,6 +53,7 @@ def normalize(sentence, lang):
         consonants_apost = '|'.join(list("dlmnst") + list('DLMNST'))
         vocals = '|'.join(list('aeiou' + 'AEIOU' + 'àèéíòóúïü' + 'ÀÈÉÍÒÓÚÏÜ'))
         sentence = re.sub(f"({consonants_apost})( )(')(h|H)?({vocals})", r'\1\3\4\5', sentence)
+        sentence = re.sub(f"({consonants_apost})(')( )(h|H)?({vocals})", r'\1\2\4\5', sentence)
     return sentence
 
 
