@@ -19,6 +19,19 @@ def get_stats(dataset, type, tokens, lang):
     std = np.std(len_list)
     mode = stats.mode(len_list)[0][0]
     return avg, std, mode
+
+def get_novelty(dataset):
+    novelty_list = []
+    for article in dataset:
+        text_words = article['text'].split()
+        summary_words = article['summary'].split()
+        novelty_words = [word for word in summary_words if word not in text_words] # return only words not present in the text
+        novelty = len(novelty_words)*100/len(summary_words)
+        novelty_list.append(novelty)
+    avg = np.mean(novelty_list)
+    std = np.std(novelty_list)
+    mode = stats.mode(novelty_list)[0][0]
+    return avg, std, mode
     
 
 if __name__ == '__main__':
@@ -30,15 +43,16 @@ if __name__ == '__main__':
     with open(args.dataset_file) as dataset_file:
         dataset = json.load(dataset_file)
 
-    results = {'ca': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':''},
-                'en': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':''},
-                'es': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':''},
-                'de': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':''},
-                'tu': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':''}
+    results = {'ca': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':''},
+                'en': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':''},
+                'es': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':''},
+                'de': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':''},
+                'tu': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':''}
     }
     for lang in dataset:
         results[lang]['text_avg_len'], results[lang]['text_std_len'], results[lang]['text_mode_len'] = get_stats(dataset[lang], 'text', args.tokens, lang)
         results[lang]['sum_avg_len'], results[lang]['sum_std_len'], results[lang]['sum_mode_len'] = get_stats(dataset[lang], 'summary', args.tokens, lang)
+        results[lang]['novelty_avg'], results[lang]['novelty_std'], results[lang]['novelty_mode'] = get_novelty(dataset[lang])
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(results)
     for lang in results:
