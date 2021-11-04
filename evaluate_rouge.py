@@ -1,4 +1,3 @@
-# TODO: treure \n per whitespace, afegir max 3 linies i tambe, break line, prou
 # Usage example: python3 evaluate_rouge.py data/gpt_summaries.json 
 import argparse
 import json
@@ -9,6 +8,7 @@ import numpy as np
 from sentence_splitter import split_text_into_sentences
 
 rouge = datasets.load_metric('rouge')
+meteor = datasets.load_metric('meteor')
 
 def process(summary, lang):
     if lang == 'tu':
@@ -27,13 +27,18 @@ def get_rouge(ground_truths,predictions):
     rouge_score = [round(score,3) for score in rouge_score]
     return rouge_score
 
+def get_meteor(ground_truths, predictions):
+    meteor_score = meteor.compute(predictions=predictions, references=ground_truths)
+    meteor_score = round(meteor_score["meteor"], 3)
+    return meteor_score
+
 def evaluate(dataset):
     langs = ["ca","de",'en','es','tu','global']
     processed_data = {}
     results = {}
     for lang in langs:
         processed_data[lang] = {"ground_truths":[],"predictions": [], "lengths_gt": [], "lengths_model":[]}
-        results[lang] = {'rouge':{}, 'summary_lengths': {}}
+        results[lang] = {'rouge':{}, 'summary_lengths': {}, 'meteor': ''}
     for article in dataset:
         article_json = json.loads(article)
         article_json['summary_gt'] = article_json['summary_gt'].replace(' .\n','. ')
@@ -52,8 +57,10 @@ def evaluate(dataset):
         lengths_gt = processed_data[lang]['lengths_gt']
         lengths_model = processed_data[lang]['lengths_model']
         precision, recall, fmeasure = get_rouge(processed_data[lang]['ground_truths'],processed_data[lang]['predictions'])
+        meteor = get_meteor(processed_data[lang]['ground_truths'],processed_data[lang]['predictions'])
         results[lang]['summary_lengths'] = {'avg_gt': np.mean(lengths_gt), 'std_gt': np.std(lengths_gt),  'avg_model': np.mean(lengths_model), 'std_model': np.std(lengths_model)}
         results[lang]['rouge'] = {'precision':precision,'recall':recall,'fmeasure':fmeasure}
+        results[lang]['meteor'] = meteor
     return results
 
 if __name__ == '__main__':
@@ -66,12 +73,15 @@ if __name__ == '__main__':
     pp = pprint.PrettyPrinter(indent=4)
     results = evaluate(dataset)
     pp.pprint(results)
-    for score in ['fmeasure','precision','recall','avg_gt','avg_model','std_gt','std_model']:
+    for score in ['fmeasure','precision','recall','avg_gt','avg_model','std_gt','std_model', 'meteor']:
         scores = []
         print(score)
         for lang in ["ca","de",'en','es','tu','global']:
-            try:
-                scores.append(str(results[lang]['rouge'][score]).replace('.',','))
-            except:
-                scores.append(str(results[lang]['summary_lengths'][score]).replace('.',','))
+            if score == 'meteor':
+                scores.append(str(results[lang][score]).replace('.',','))
+            else:
+                try:
+                    scores.append(str(results[lang]['rouge'][score]).replace('.',','))
+                except:
+                    scores.append(str(results[lang]['summary_lengths'][score]).replace('.',','))
         print(';'.join(scores))
