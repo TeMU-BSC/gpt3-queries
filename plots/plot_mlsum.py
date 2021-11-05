@@ -9,8 +9,8 @@ font = {'family' : 'Sans Serif',
 plt.rc('font', **font)
 
 #PLOT MSLUM
-df = pd.read_csv('mlsum.tsv', sep='\t')
+df = pd.read_csv('data/mlsum.tsv', sep='\t')
 sns.barplot(data=df, x='Model', y='Score', hue='Language', palette='rocket')
 plt.legend(loc='upper right')
-plt.savefig('plot_mlsum_scores.png')
+plt.savefig('figures/mlsum_scores.png')
 plt.close()

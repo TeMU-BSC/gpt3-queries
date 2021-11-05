@@ -5,6 +5,7 @@ import pprint
 import numpy as np 
 from scipy import stats
 from sentence_splitter import split_text_into_sentences
+from collections import Counter
 
 def get_stats(dataset, type, tokens, lang):
     if tokens == 'words':
@@ -40,6 +41,16 @@ def get_compressionratio(dataset):
     mode = stats.mode(comp)[0][0]
     return avg, std, mode
 
+def vocab_stats(dataset):
+    all_words = ' '.join([' '.join([article['text'].split(),article['summary'].split()] for article in dataset])
+    print(len(all_words))
+    vocab = set(all_words)
+    print(len(vocab))
+    word_occurrences = Counter(all_words)
+    over_ten = [word[0] for word in word_occurrences if word[1] >= 10]
+    print(over_ten)
+    return vocab, over_ten
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Statistics script for Summarization. It expects a json file')
@@ -49,17 +60,19 @@ if __name__ == '__main__':
     with open(args.dataset_file) as dataset_file:
         dataset = json.load(dataset_file)
 
-    results = {'ca': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':''},
-                'en': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':''},
-                'es': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':''},
-                'de': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':''},
-                'tu': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':''},
+    results = {'ca': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':'', 'vocab':'', 'over_ten':''},
+                'en': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':'', 'vocab':'', 'over_ten':''},
+                'es': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':'', 'vocab':'', 'over_ten':''},
+                'de': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':'', 'vocab':'', 'over_ten':''},
+                'tu': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':'', 'vocab':'', 'over_ten':''},
     }
     for lang in dataset:
-        results[lang]['text_avg_len'], results[lang]['text_std_len'], results[lang]['text_mode_len'] = get_stats(dataset[lang], 'text', args.tokens, lang)
-        results[lang]['sum_avg_len'], results[lang]['sum_std_len'], results[lang]['sum_mode_len'] = get_stats(dataset[lang], 'summary', args.tokens, lang)
-        results[lang]['novelty_avg'], results[lang]['novelty_std'], results[lang]['novelty_mode'] = get_novelty(dataset[lang])
-        results[lang]['comp_avg'], results[lang]['comp_std'], results[lang]['comp_mode'] = get_compressionratio(dataset[lang])
+        print(lang)
+        #results[lang]['text_avg_len'], results[lang]['text_std_len'], results[lang]['text_mode_len'] = get_stats(dataset[lang], 'text', args.tokens, lang)
+        #results[lang]['sum_avg_len'], results[lang]['sum_std_len'], results[lang]['sum_mode_len'] = get_stats(dataset[lang], 'summary', args.tokens, lang)
+        #results[lang]['novelty_avg'], results[lang]['novelty_std'], results[lang]['novelty_mode'] = get_novelty(dataset[lang])
+        #results[lang]['comp_avg'], results[lang]['comp_std'], results[lang]['comp_mode'] = vocab_stats(dataset[lang])
+        results[lang]['vocab'], results[lang]['over_ten'] = get_compressionratio(dataset[lang])
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(results)
     for lang in results:
