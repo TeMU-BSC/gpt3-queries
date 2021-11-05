@@ -42,13 +42,10 @@ def get_compressionratio(dataset):
     return avg, std, mode
 
 def vocab_stats(dataset):
-    all_words = ' '.join([' '.join([article['text'].split(),article['summary'].split()] for article in dataset])
-    print(len(all_words))
-    vocab = set(all_words)
-    print(len(vocab))
+    all_words = ' '.join([' '.join([article['text'],article['summary']]) for article in dataset]).split()
+    vocab = len(set(all_words))
     word_occurrences = Counter(all_words)
-    over_ten = [word[0] for word in word_occurrences if word[1] >= 10]
-    print(over_ten)
+    over_ten = len([word for word in word_occurrences if word_occurrences[word] >= 10])
     return vocab, over_ten
 
 if __name__ == '__main__':
@@ -67,12 +64,11 @@ if __name__ == '__main__':
                 'tu': {'text_avg_len':'','text_std_len':'','text_mode_len':'','sum_avg_len':'','sum_std_len':'','sum_mode_len':'', 'novelty_avg':'', 'novelty_std':'', 'novelty_mode':'', 'comp_avg':'', 'comp_std':'', 'comp_mode':'', 'vocab':'', 'over_ten':''},
     }
     for lang in dataset:
-        print(lang)
-        #results[lang]['text_avg_len'], results[lang]['text_std_len'], results[lang]['text_mode_len'] = get_stats(dataset[lang], 'text', args.tokens, lang)
-        #results[lang]['sum_avg_len'], results[lang]['sum_std_len'], results[lang]['sum_mode_len'] = get_stats(dataset[lang], 'summary', args.tokens, lang)
-        #results[lang]['novelty_avg'], results[lang]['novelty_std'], results[lang]['novelty_mode'] = get_novelty(dataset[lang])
-        #results[lang]['comp_avg'], results[lang]['comp_std'], results[lang]['comp_mode'] = vocab_stats(dataset[lang])
-        results[lang]['vocab'], results[lang]['over_ten'] = get_compressionratio(dataset[lang])
+        results[lang]['text_avg_len'], results[lang]['text_std_len'], results[lang]['text_mode_len'] = get_stats(dataset[lang], 'text', args.tokens, lang)
+        results[lang]['sum_avg_len'], results[lang]['sum_std_len'], results[lang]['sum_mode_len'] = get_stats(dataset[lang], 'summary', args.tokens, lang)
+        results[lang]['novelty_avg'], results[lang]['novelty_std'], results[lang]['novelty_mode'] = get_novelty(dataset[lang])
+        results[lang]['comp_avg'], results[lang]['comp_std'], results[lang]['comp_mode'] = vocab_stats(dataset[lang])
+        results[lang]['vocab'], results[lang]['over_ten'] = vocab_stats(dataset[lang])
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(results)
     for lang in results:
