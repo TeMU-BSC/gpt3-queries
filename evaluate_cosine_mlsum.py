@@ -40,7 +40,8 @@ def evaluate(dataset):
         article_json['summary_gt'] = article_json['summary_gt'].replace(' .\n','. ')
         article_json['summary_gt'] = article_json['summary_gt'].replace('\n',' ')
         article_json['summary_model'] = process(article_json['summary_model'], article_json['lang'])
-        processed_data[article_json['lang']]['cos'].append(cosine(article_json['summary_gt'],article_json['summary_model']))
+        cos = cosine(article_json['summary_gt'],article_json['summary_model'])
+        processed_data[article_json['lang']]['cos'].append(cos)
 
     for lang in langs:
         results[lang]['cos_avg'] = np.mean(processed_data[lang]['cos'])
