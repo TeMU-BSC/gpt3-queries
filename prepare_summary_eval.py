@@ -22,6 +22,7 @@ if __name__ == '__main__':
     models = ['ada', 'babbage', 'curie', 'davinci']
     model_sums = {}
     for model in models:
+        discarded_texts = []
         PATH = os.path.join('data','mlsum_outputs',model+'_gpt_summaries.json')
         #models = {'human': [], 'ada': [], 'babbage': [], 'curie': [], 'davinci': []}
         with open(PATH, 'r') as f:
@@ -29,12 +30,17 @@ if __name__ == '__main__':
                 article = json.loads(article)
                 if article['lang'] == lang:
                     if article['text'] in model_sums.keys():
-                        model_sums[article['text']][model] = process(article['summary_model'], lang)
+                        if article['summary_model'] not in list(model_sums[article['text']].values()): #force different summaries per model
+                            model_sums[article['text']][model] = process(article['summary_model'], lang)
+                        else: 
+                            del model_sums[article['text']]
+                            discarded_texts.append(article['text'])
                     else:
-                        model_sums[article['text']] = {'human':'', 'ada':'', 'babbage':'', 'curie':'', 'davinci':''}
-                        model_sums[article['text']]['human'] = article['summary_gt'].replace(' .\n','. ').replace('\n',' ')
-                        model_sums[article['text']][model] = process(article['summary_model'], lang)
-        
+                        if article['text'] not in discarded_texts:
+                            model_sums[article['text']] = {'human':'', 'ada':'', 'babbage':'', 'curie':'', 'davinci':''}
+                            model_sums[article['text']]['human'] = article['summary_gt'].replace(' .\n','. ').replace('\n',' ')
+                            model_sums[article['text']][model] = process(article['summary_model'], lang)
+            
         final_list = []
         text_count = 0
         for entry in model_sums:
@@ -53,4 +59,4 @@ if __name__ == '__main__':
 
     OUT_PATH = '/home/ona/Documents/Papers/gpt3_paper/gpt3-queries/data/human_eval/summary_eval/'
     all_articles = pd.DataFrame(final_list, columns=['ID','Text/Summary','model'])
-    all_articles.to_csv(os.path.join(OUT_PATH,'all_articles.tsv'), sep='\t')
+    all_articles.to_csv(os.path.join(OUT_PATH,lang+'_all_articles_dedup.tsv'), sep='\t')
