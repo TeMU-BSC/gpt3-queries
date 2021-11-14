@@ -15,7 +15,7 @@ plt.rc('font', **font)
 x_axis_dict = {'ada': math.log(350), 'babbage' : math.log(1300), 'curie' : math.log(6700), 'davinci' : math.log(175000)}
 
 #PLOT QA F1SCORE
-df = pd.read_csv('data/qa_F1.tsv', sep='\t')
+df = pd.read_csv('data/qa_EM.tsv', sep='\t')
 df['x_axis'] = df['Model'].map(x_axis_dict) 
 df['x_axis'] = df['x_axis'].apply(lambda x: round(x,0))
 sns.lineplot(data=df, x='x_axis', y='Score', hue='Language', style='Language',markers=True, palette=palette, hue_order=labels)
@@ -24,8 +24,8 @@ sns.lineplot(data=df, x='x_axis', y='Score', hue='Language', style='Language',ma
 #exact_match = pd.read_csv('data/qa_EM.tsv', sep='\t')
 #sns.pointplot(data=exact_match, x='Model', y='Score', hue='Language', markers='^', dodge=0.7, color='black', linestyles='',  facet_kws={'legend_out': True})#, axx2)
 ax = plt.gca()
-ax.set_ylim([0.00, 0.6])
-ax.set(xlabel = 'Model', ylabel='F1', xticklabels=['', 'ada','babbage','','curie','','','davinci'])
+ax.set_ylim([-0.01, 0.4])
+ax.set(xlabel = 'Model', ylabel='EM', xticklabels=['', 'ada','babbage','','curie','','','davinci'])
 plt.legend(loc='best')
-plt.savefig('figures/qa_f1.pdf')
+plt.savefig('figures/qa_EM.pdf')
 plt.close()
