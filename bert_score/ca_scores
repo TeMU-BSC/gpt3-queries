@@ -1,0 +1,4 @@
+bert-base-multilingual-cased_L9_no-idf_version=0.3.10(hug_trans=4.12.3)_fast-tokenizer P: 0.704947 R: 0.717907 F1: 0.709958
+bert-base-multilingual-cased_L9_no-idf_version=0.3.10(hug_trans=4.12.3)_fast-tokenizer P: 0.709075 R: 0.724684 F1: 0.715417
+bert-base-multilingual-cased_L9_no-idf_version=0.3.10(hug_trans=4.12.3)_fast-tokenizer P: 0.741680 R: 0.732471 F1: 0.735478
+bert-base-multilingual-cased_L9_no-idf_version=0.3.10(hug_trans=4.12.3)_fast-tokenizer P: 0.731776 R: 0.727145 F1: 0.727712
