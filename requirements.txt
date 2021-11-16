@@ -44,3 +44,9 @@ xxhash==2.0.2
 yarl==1.6.3
 sentence-splitter==1.4
 ftfy
+pymorphy2==0.9.1
+pymorphy2-dicts-ru==2.4.417127.4579844
+spacy==3.1.4
+zeyrek==0.1.2
+bert_score
+tensorflow
